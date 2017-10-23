@@ -17,9 +17,14 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 
 	private Robot robot;
 	private Image image;
+	private Image currentSprite;
 	private Image character;
+	private Image background;
+	private Image characterJumped;
+	private Image characterDown;
 	private URL base;
 	private Graphics second;
+	private static Background bg1, bg2;
 
 	@Override
 	public void init() {
@@ -36,10 +41,16 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 		}
 		// Image Setups
 		character = getImage(base, "drawable/character.png");
+		characterDown = getImage(base, "drawable/down.png");
+		characterJumped = getImage(base, "drawable/jumped.png");
+		currentSprite = character;
+		background = getImage(base, "drawable/background.png");
 	}
 
 	@Override
 	public void start() {
+		bg1 = new Background(0, 0);
+		bg2 = new Background(2160, 0);
 		robot = new Robot();
 		Thread thread = new Thread(this);
 		thread.start();
@@ -61,6 +72,13 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 	public void run() {
 		while (true) {
 			robot.update();
+			if (robot.isJumped()){
+				currentSprite = characterJumped;
+			}else if (robot.isJumped() == false && robot.isDucked() == false){
+				currentSprite = character;
+			}
+			bg1.update();
+			bg2.update();
 			repaint();
 			try {
 				Thread.sleep(17);
@@ -69,88 +87,107 @@ public class StartingClass extends Applet implements Runnable, KeyListener {
 			}
 		}
 	}
-
-	@Override
-	public void keyTyped(KeyEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void keyPressed(KeyEvent e) {
-
-		switch (e.getKeyCode()) {
-		case KeyEvent.VK_UP:
-			System.out.println("Move up");
-			break;
-
-		case KeyEvent.VK_DOWN:
-			System.out.println("Move down");
-			break;
-
-		case KeyEvent.VK_LEFT:
-			robot.moveLeft();
-			break;
-
-		case KeyEvent.VK_RIGHT:
-			robot.moveRight();
-			break;
-
-		case KeyEvent.VK_SPACE:
-			robot.jump();
-			break;
-
-		}
-
-	}
-
-	@Override
-	public void keyReleased(KeyEvent e) {
-		switch (e.getKeyCode()) {
-		case KeyEvent.VK_UP:
-			System.out.println("Stop moving up");
-			break;
-
-		case KeyEvent.VK_DOWN:
-			System.out.println("Stop moving down");
-			break;
-
-		case KeyEvent.VK_LEFT:
-			robot.stop();
-			break;
-
-		case KeyEvent.VK_RIGHT:
-			robot.stop();
-			break;
-
-		case KeyEvent.VK_SPACE:
-			System.out.println("Stop jumping");
-			break;
-
-		}
-
-	}
 	
-	@Override
-	public void paint(Graphics g) {
-		g.drawImage(character, robot.getCenterX() - 61, robot.getCenterY() - 63, this);
-
-	}
-
 	@Override
 	public void update(Graphics g) {
 		if (image == null) {
 			image = createImage(this.getWidth(), this.getHeight());
 			second = image.getGraphics();
 		}
-
 		second.setColor(getBackground());
 		second.fillRect(0, 0, getWidth(), getHeight());
 		second.setColor(getForeground());
 		paint(second);
-
 		g.drawImage(image, 0, 0, this);
+	}
+	
+	@Override
+	public void paint(Graphics g) {
+		g.drawImage(background, bg1.getBgX(), bg1.getBgY(), this);
+		g.drawImage(background, bg2.getBgX(), bg2.getBgY(), this);
+		g.drawImage(currentSprite, robot.getCenterX() - 61, robot.getCenterY() - 63, this);
+	}
+	
+
+
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+
+		switch (e.getKeyCode()) {
+        case KeyEvent.VK_UP:
+            System.out.println("Move up");
+            break;
+
+        case KeyEvent.VK_DOWN:
+            currentSprite = characterDown;
+            if (robot.isJumped() == false){
+                robot.setDucked(true);
+                robot.setSpeedX(0);
+            }
+            break;
+
+        case KeyEvent.VK_LEFT:
+            robot.moveLeft();
+            robot.setMovingLeft(true);
+            break;
+
+        case KeyEvent.VK_RIGHT:
+            robot.moveRight();
+            robot.setMovingRight(true);
+            break;
+
+        case KeyEvent.VK_SPACE:
+            robot.jump();
+            break;
+
+        }
 
 	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		switch (e.getKeyCode()) {
+        case KeyEvent.VK_UP:
+            System.out.println("Stop moving up");
+            break;
+
+        case KeyEvent.VK_DOWN:
+            currentSprite = character;
+            robot.setDucked(false);
+            break;
+
+        case KeyEvent.VK_LEFT:
+            robot.stopLeft();
+            break;
+
+        case KeyEvent.VK_RIGHT:
+            robot.stopRight();
+            break;
+
+        case KeyEvent.VK_SPACE:
+            break;
+
+        }
+		
+	}
+	
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+
+
+
+	
+	public static Background getBg1() {
+        return bg1;
+    }
+
+    public static Background getBg2() {
+        return bg2;
+    }
 
 }
